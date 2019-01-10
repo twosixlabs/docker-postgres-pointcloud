@@ -1,4 +1,4 @@
-ARG TIMESCALE_VERSION=0.11.0-pg10
+ARG TIMESCALE_VERSION=1.1.1-pg11
 ARG POINTCLOUD_VERSION=1.2.0
 ARG POINTCLOUD_VERSION_GIT=v${POINTCLOUD_VERSION}
 
@@ -7,7 +7,7 @@ FROM timescale/timescaledb-postgis:$TIMESCALE_VERSION  as builder
 # necessary for it to build the FDW, for some reason
 ENV USE_PGXS = 1
 
-RUN apk add --update  build-base git cmake make libuv libuv-dev
+RUN apk add --update  build-base git cmake make
 RUN apk add --no-cache --virtual .fetch-deps \
     ca-certificates \
     openssl \
@@ -56,16 +56,4 @@ COPY --from=builder /usr/local/lib/postgresql/pointcloud-*.so /usr/local/lib/pos
 
 # this dir has the pointcloud extension
 COPY --from=builder /usr/local/share/postgresql/extension/ /usr/local/share/postgresql/extension
-
-# the update_hba_config.sh script uses jq, which isn't installed by  default on alpine
-RUN apk --no-cache add \
-  # required for runtime hba_config modification
-  jq \
-  # required for cassadra c driver
-  libuv \
-  libxml2 \
-  zlib
-
-EXPOSE 5432
-VOLUME  ["/var/log/postgresql", "/var/lib/postgresql"]
 
